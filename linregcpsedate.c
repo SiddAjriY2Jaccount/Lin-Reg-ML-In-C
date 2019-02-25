@@ -2,30 +2,17 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-#define maxclose 4040.95
-#define minclose 3618.10
-#define maxturnover 8510.50
-#define minturnover 4121.30
-
-
-float denormalizex(float x, float meanx)
-{
-  return ((x*(maxclose-minclose))+meanx);
-}
-
-float normalizex(float x, float meanx)
-{
-  return (x-meanx)/(maxclose - minclose);
-}
+#define maxclose 2061.15
+#define minclose 1861.7
 
 float denormalizey(float y, float meany)
 {
-  return ((y*(maxturnover-minturnover))+meany);
+  return ((y*(maxclose-minclose))+meany);
 }
 
 float normalizey(float y, float meany)
 {
-  return (y-meany)/(maxturnover - minturnover);
+  return (y-meany)/(maxclose - minclose);
 }
 
 void plot(float m2, float b2) {
@@ -37,15 +24,15 @@ void plot(float m2, float b2) {
   fclose(gnuplot);
 }
 
-void regression(float x[], float y[], int n, float xtest, float ytest)
+void regression(float y[], int n, int xtest, float ytest)
 {
     int epochs = 0;
-    float alpha=0.0001;
+    float alpha=0.001;
     double theta_0, theta_1, h, predicted, error, errorSum, errorTimesxSum, meansqerror;
 
     FILE *fptr;
 
-    fptr = fopen("errorplot.txt", "w");
+    fptr = fopen("errorplotcpse.txt", "w");
 
     theta_0 = 0.1;
     theta_1 = 0.1;
@@ -58,7 +45,7 @@ void regression(float x[], float y[], int n, float xtest, float ytest)
 
     for(int k1 = 0; k1<n; k1++)
     {
-      meanx += x[k1];
+      meanx += k1;
     }
     meanx = meanx/n;
 
@@ -71,7 +58,7 @@ void regression(float x[], float y[], int n, float xtest, float ytest)
     printf("\nMean X : %f",meanx);
     //printf("%f\n", normalize(x[1], meanx));
 
-    while(epochs<250000)
+    while(epochs<2500)
     {
         int i;
         meansqerror = 0.0;
@@ -88,10 +75,10 @@ void regression(float x[], float y[], int n, float xtest, float ytest)
 */
         for (i=0; i<n; i++)
         {
-            h = theta_0 + theta_1*normalizex(x[i],meanx);
+            h = theta_0 + theta_1*i;
             error = h - normalizey(y[i],meany);
             errorSum += error;
-            errorTimesxSum += error*normalizex(x[i],meanx);
+            errorTimesxSum += error*i;
             meansqerror += error*error;
         }
         printf("Error is %f\n",((1/(2.0*n))*meansqerror));
@@ -114,23 +101,22 @@ void regression(float x[], float y[], int n, float xtest, float ytest)
     }
     //fclose(fptr);
 
-    predicted = theta_0 + theta_1*(normalizex(xtest,meanx));
-    printf("\nPred b4 norm is : %f", predicted);
+    predicted = theta_0 + theta_1*xtest;
+    //printf("\nPred b4 norm is : %f", predicted);
     predicted = denormalizey(predicted, meany);
     printf("\nTheta-0 value is : %f", (theta_0) );
     printf("\nTheta-1 value is : %f", (theta_1) );
-    printf("\nActual value is : %f", ytest);
     printf("\nPredicted value is : %f", predicted);
     printf("\nActual value is : %f", ytest);
     plot(theta_1, theta_0);
-
 }
+
+
 void main()
 {
-  float close[20] = {4015.5, 4040.95, 3964.5, 3797.45, 3787.6, 3792.9, 3913.8, 3774.45, 3861.2, 3884.95, 3917.25, 3768.4, 3723.85, 3706.6, 3659.95, 3730.85, 3645.0, 3618.1, 3767.55, 3750.2};
-  float xtest = 3809.2; // for given close
-  float turnover[20] = {8024.6, 8459.9, 6805.32, 6857.09, 7628.59, 8237.99, 7495.88, 8510.5, 5944.15, 4121.3, 4832.02, 5646.27, 7667.49, 6034.44, 6340.0, 7284.36, 7063.9, 6433.88, 5360.77, 4699.12};
-  float ytest = 6567.89; //turnover to be predicted
-  int n1 = 20;
-  regression(close, turnover, n1, xtest, ytest);
+  float close[40] = {2061.15, 2038.95, 2004.1, 2031.65, 2039.75, 2038.65, 2024.15, 2018.35, 2025.3, 2013.55, 2030.5, 2033.9, 2031.5, 2028.2, 2006.0, 1996.25, 1981.45, 1977.1, 1965.55, 1967.7, 1966.2, 1963.9, 1977.3, 1981.8, 1970.1, 1937.6, 1968.8, 1987.05, 1932.55, 1910.8, 1925.85, 1886.2, 1861.7, 1896.8, 1895.25, 1901.1, 1944.1, 1954.95, 1996.3, 1998.9};
+  int n1 = 38;
+  int xtest = 39;
+  float ytest = close[39];
+  regression(close, n1, xtest, ytest);
 }
